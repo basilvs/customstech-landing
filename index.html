@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CustomsTech — автопостинг новостей ВЭД для таможенных брокеров</title>
+<meta name="description" content="CustomsTech автоматически находит, проверяет и публикует новости таможенного законодательства и ВЭД. Живая лента ниже — реальный результат работы конвейера.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f1117'/%3E%3Ctext x='50' y='68' font-size='60' text-anchor='middle' fill='%2359f' font-family='Arial'%3ECT%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CustomsTech — автопостинг новостей ВЭД для таможенных брокеров">
+<meta property="og:description" content="Живая лента новостей — реальный результат конвейера news-collector → content-creator → publisher.">
+<meta property="og:site_name" content="CustomsTech">
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e1e4ed;
+    --muted: #8b8fa3;
+    --green: #4c4;
+    --orange: #f90;
+    --blue: #59f;
+    --purple: #a6f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    background: rgba(15, 17, 23, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; }
+  .logo span { color: var(--blue); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 4px 14px rgba(85, 153, 255, 0.25); }
+  .btn-primary:hover { background: #6aa3ff; box-shadow: 0 6px 20px rgba(85, 153, 255, 0.35); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+
+  .hero { padding: 100px 0 80px; text-align: center; border-bottom: 1px solid var(--border); }
+  .hero .badge {
+    display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px;
+    background: rgba(68, 204, 68, 0.12); color: var(--green); border: 1px solid rgba(68,204,68,0.3);
+    margin-bottom: 20px;
+  }
+  .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 700; line-height: 1.15; margin-bottom: 20px; }
+  .hero h1 span { color: var(--blue); }
+  .hero p { font-size: clamp(16px, 2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 auto 36px; }
+  .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  .section { padding: 80px 0; }
+  .section-title { font-size: clamp(24px, 3vw, 34px); font-weight: 700; margin-bottom: 16px; text-align: center; }
+  .section-subtitle { color: var(--muted); text-align: center; max-width: 680px; margin: 0 auto 48px; font-size: 16px; }
+
+  /* Лента новостей */
+  .news-toolbar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+  .filter-btn {
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 16px; border-radius: 999px; font-size: 13px; cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn:hover { color: var(--text); border-color: var(--blue); }
+  .filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .news-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s;
+  }
+  .news-card:hover { border-color: var(--blue); transform: translateY(-3px); }
+  .news-media { width: 100%; aspect-ratio: 16/9; background: #11131b; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .news-media img, .news-media video { width: 100%; height: 100%; object-fit: cover; }
+  .news-media.placeholder { color: var(--muted); font-size: 13px; }
+  .news-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .news-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+  .news-topic {
+    background: rgba(85, 153, 255, 0.12); color: var(--blue); padding: 3px 10px;
+    border-radius: 999px; font-weight: 600;
+  }
+  .news-card h3 { font-size: 16px; font-weight: 600; line-height: 1.35; }
+  .news-card p { color: var(--muted); font-size: 14px; flex: 1; }
+  .news-card a.news-link { color: var(--blue); font-size: 13px; text-decoration: none; font-weight: 600; }
+  .news-card a.news-link:hover { text-decoration: underline; }
+  .news-footnote { text-align: center; color: var(--muted); font-size: 13px; margin-top: 32px; }
+  .news-footnote code { background: var(--card); padding: 2px 6px; border-radius: 4px; }
+
+  /* Конвейер */
+  .pipeline { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .pipeline-step {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 16px; width: 150px; text-align: center; font-size: 13px;
+  }
+  .pipeline-step .n { color: var(--blue); font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+  .pipeline-step .t { font-weight: 600; margin-bottom: 4px; }
+  .pipeline-step .d { color: var(--muted); font-size: 12px; }
+  .pipeline-arrow { display: flex; align-items: center; color: var(--muted); font-size: 20px; }
+  @media (max-width: 900px) { .pipeline-arrow { transform: rotate(90deg); } }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; transition: border-color 0.2s, transform 0.2s; }
+  .card:hover { border-color: var(--blue); transform: translateY(-4px); }
+  .card-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .card-icon svg { width: 24px; height: 24px; }
+  .icon-blue { background: rgba(85, 153, 255, 0.12); color: var(--blue); }
+  .icon-orange { background: rgba(255, 153, 0, 0.12); color: var(--orange); }
+  .icon-purple { background: rgba(170, 102, 255, 0.12); color: var(--purple); }
+  .card h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+  .card p { color: var(--muted); font-size: 15px; margin-bottom: 20px; }
+  .card-list { list-style: none; }
+  .card-list li { color: var(--muted); font-size: 14px; padding-left: 20px; position: relative; margin-bottom: 8px; }
+  .card-list li::before { content: "—"; position: absolute; left: 0; color: var(--blue); }
+  .stage-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 999px; margin-bottom: 16px;
+  }
+  .stage-now { background: rgba(68, 204, 68, 0.15); color: var(--green); }
+  .stage-next { background: rgba(255, 153, 0, 0.15); color: var(--orange); }
+  .stage-saas { background: rgba(170, 102, 255, 0.15); color: var(--purple); }
+
+  .benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; }
+  .benefit { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 16px; }
+  .benefit-value { font-size: 36px; font-weight: 700; color: var(--blue); }
+  .benefit-label { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+  .cta { background: linear-gradient(180deg, rgba(85, 153, 255, 0.08) 0%, transparent 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .cta-form { max-width: 560px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; }
+  .cta-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 14px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .form-group input, .form-group textarea {
+    width: 100%; background: #11131b; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--blue); }
+  .form-group textarea { min-height: 100px; resize: vertical; }
+  .cta-form .btn { width: 100%; }
+
+  footer { padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 992px) {
+    .cards { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: repeat(2, 1fr); }
+    .benefits { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .menu-toggle { display: block; }
+    .nav-links {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      flex-direction: column; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; gap: 16px;
+    }
+    .nav-links.open { display: flex; }
+    .hero { padding: 64px 0 48px; }
+    .section { padding: 56px 0; }
+    .news-grid { grid-template-columns: 1fr; }
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <nav class="nav">
+      <a href="#" class="logo">Customs<span>Tech</span></a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#news">Лента новостей</a></li>
+        <li><a href="#pipeline">Как это работает</a></li>
+        <li><a href="#roadmap">Дорожная карта</a></li>
+        <li><a href="#demo">Демо</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="#demo" class="btn btn-primary">Получить демо</a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Меню">☰</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <span class="badge">● живая лента ниже — реальный результат работы конвейера</span>
+    <h1>Автопостинг новостей <span>ВЭД и таможенного законодательства</span></h1>
+    <p>CustomsTech находит новости на официальных источниках, проверяет их по независимым отраслевым порталам и готовит пост с текстом и картинкой — автоматически, без ручного мониторинга ФТС каждый день.</p>
+    <div class="hero-actions">
+      <a href="#news" class="btn btn-primary">Смотреть ленту</a>
+      <a href="#pipeline" class="btn btn-outline">Как это устроено</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="news">
+  <div class="container">
+    <h2 class="section-title">Лента новостей</h2>
+    <p class="section-subtitle">Реальные новости, найденные и обработанные конвейером автопостинга — с проверкой по официальным и отраслевым источникам.</p>
+    <div class="news-toolbar" id="newsFilters"></div>
+    <div class="news-grid" id="newsGrid"></div>
+    <p class="news-footnote">Полные тексты постов для VK/Telegram и цепочка проверки источников — в <code>autopost/posts/*.json</code> репозитория <a href="https://github.com/basilvs/customs-ops-toolkit" class="news-link">customs-ops-toolkit</a>.</p>
+  </div>
+</section>
+
+<section class="section" id="pipeline" style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <h2 class="section-title">Как это работает</h2>
+    <p class="section-subtitle">Шесть специализированных агентов ведут новость от поиска до публикации.</p>
+    <div class="pipeline">
+      <div class="pipeline-step"><div class="n">1</div><div class="t">news-collector</div><div class="d">ищет новость на официальных источниках, проверяет по независимым</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="n">2</div><div class="t">content-creator</div><div class="d">готовит текст поста для VK и Telegram</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="n">3</div><div class="t">post-validator</div><div class="d">сверяет пост с материалами отраслевых порталов</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="n">4</div><div class="t">media-designer</div><div class="d">генерирует изображение и видеоролик</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="n">5</div><div class="t">vk / telegram publisher</div><div class="d">публикует пост в группу и канал</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="container">
+    <h2 class="section-title">Дорожная карта</h2>
+    <p class="section-subtitle">От лендинга с живой лентой новостей — к полноценному сайту и SaaS-платформе для отдела ВЭД.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="stage-badge stage-now">Готово сейчас</span>
+        <div class="card-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        <h3>Лендинг с лентой новостей</h3>
+        <p>Автопостинг новостей ВЭД работает и показан на этой странице живыми данными.</p>
+        <ul class="card-list">
+          <li>Поиск и проверка новостей по источникам</li>
+          <li>Готовые тексты и изображения для постов</li>
+          <li>Публикация в VK и Telegram</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="stage-badge stage-next">Следующий этап — полноценный сайт</span>
+        <div class="card-icon icon-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        </div>
+        <h3>Документы и отчёты по ДТ</h3>
+        <p>Личный кабинет клиента: подготовка документов для декларирования, электронный обмен с таможней, отчёты по статусам ДТ.</p>
+        <ul class="card-list">
+          <li>Хранилище документов по каждой ДТ</li>
+          <li>Электронный обмен с таможенными органами</li>
+          <li>Статусы, копии с отметками, документы для бухгалтерии</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="stage-badge stage-saas">Далее — SaaS</span>
+        <div class="card-icon icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        </div>
+        <h3>Платформа для отдела ВЭД</h3>
+        <p>Мультитенантный сервис для нескольких брокеров и компаний: свои ленты новостей, роли, биллинг, API.</p>
+        <ul class="card-list">
+          <li>Личный кабинет и роли пользователей</li>
+          <li>Подписка и биллинг</li>
+          <li>Интеграция с АльтаГТД / Docs2SQL по API</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="benefits" style="border-top: 1px solid var(--border);">
+  <div class="container">
+    <h2 class="section-title">Эффект уже сейчас</h2>
+    <p class="section-subtitle">На этапе автопостинга новостей.</p>
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-value">70%</div>
+        <div class="benefit-label">экономия времени на подготовку постов</div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-value">24/7</div>
+        <div class="benefit-label">мониторинг новостей ФТС и отраслевых источников</div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-value">2</div>
+        <div class="benefit-label">независимых источника на проверку каждой новости</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section cta" id="demo">
+  <div class="container">
+    <h2 class="section-title">Получите демо</h2>
+    <p class="section-subtitle">Оставьте контакты — покажем, как CustomsTech работает на ваших задачах.</p>
+    <form class="cta-form" onsubmit="event.preventDefault(); alert('Заявка принята. Мы свяжемся с вами.');">
+      <div class="form-group">
+        <label for="name">Имя</label>
+        <input type="text" id="name" name="name" placeholder="Иван Иванов" required>
+      </div>
+      <div class="form-group">
+        <label for="contact">Email или телефон</label>
+        <input type="text" id="contact" name="contact" placeholder="+7 (999) 000-00-00" required>
+      </div>
+      <div class="form-group">
+        <label for="message">Сообщение</label>
+        <textarea id="message" name="message" placeholder="Расскажите о задаче, которую хотите автоматизировать"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Отправить заявку</button>
+    </form>
+    <p class="cta-note">Форма — макет интерфейса без бэкенда, для демонстрации сценария.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2026 CustomsTech. Решение для автоматизации таможенного оформления.</p>
+  </div>
+</footer>
+
+<script src="news-data.js"></script>
+<script>
+  // Мобильное меню
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // Лента новостей: рендер + фильтр по теме
+  const grid = document.getElementById('newsGrid');
+  const filtersEl = document.getElementById('newsFilters');
+  const topics = ['Все', ...new Set(NEWS_FEED.map(n => n.topic))];
+  let activeTopic = 'Все';
+
+  function formatDate(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  function renderFilters() {
+    filtersEl.innerHTML = topics.map(t =>
+      `<button class="filter-btn${t === activeTopic ? ' active' : ''}" data-topic="${t}">${t}</button>`
+    ).join('');
+    filtersEl.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTopic = btn.dataset.topic;
+        renderFilters();
+        renderNews();
+      });
+    });
+  }
+
+  function renderNews() {
+    const items = activeTopic === 'Все' ? NEWS_FEED : NEWS_FEED.filter(n => n.topic === activeTopic);
+    grid.innerHTML = items.map(n => `
+      <article class="news-card">
+        <div class="news-media${n.image ? '' : ' placeholder'}">
+          ${n.video ? `<video src="${n.video}" muted loop autoplay playsinline></video>`
+            : n.image ? `<img src="${n.image}" alt="${n.title}" loading="lazy">`
+            : 'Изображение генерируется по запросу'}
+        </div>
+        <div class="news-body">
+          <div class="news-meta">
+            <span class="news-topic">${n.topic}</span>
+            <span>${formatDate(n.date)} · ${n.source}</span>
+          </div>
+          <h3>${n.title}</h3>
+          <p>${n.summary}</p>
+          <a class="news-link" href="${n.url}" target="_blank" rel="noopener">Первоисточник →</a>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  renderFilters();
+  renderNews();
+</script>
+
+</body>
+</html>
