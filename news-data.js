@@ -3,7 +3,7 @@
  * Каждая запись — фактически найденная и проверенная новость с готовым текстом поста для VK.
  * Полные тексты и источники: autopost/posts/*-social-content.json в customs-ops-toolkit.
  */
-const NEWS_FEED = [
+const NEWS_FEED = window.NEWS_FEED || [
   {
     date: "2026-08-03",
     topic: "Контроль",

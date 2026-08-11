@@ -11,6 +11,47 @@
 <meta property="og:title" content="CustomsTech — автопостинг новостей ВЭД для таможенных брокеров">
 <meta property="og:description" content="Живая лента новостей — реальный результат конвейера news-collector → content-creator → publisher.">
 <meta property="og:site_name" content="CustomsTech">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "CustomsTech",
+      "url": "https://basilvs.github.io/customstech-landing/",
+      "description": "Автопостинг новостей ВЭД и таможенного законодательства для брокеров и отделов ВЭД"
+    },
+    {
+      "@type": "Organization",
+      "name": "CustomsTech",
+      "url": "https://basilvs.github.io/customstech-landing/"
+    },
+    {
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Лента новостей",
+          "description": "Живая лента новостей ВЭД с фильтрацией по темам"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Конвейер автопостинга",
+          "description": "Шесть агентов от поиска новости до публикации в VK/Telegram"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Дорожная карта",
+          "description": "Развитие от лендинга к полноценному сайту и SaaS-платформе"
+        }
+      ]
+    }
+  ]
+}
+</script>
 <style>
   :root {
     --bg: #0f1117;
@@ -406,6 +447,29 @@
 
   renderFilters();
   renderNews();
+
+  // Динамическая Schema.org разметка для каждой новости в ленте
+  const schemaArticles = NEWS_FEED.map((n, i) => ({
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "position": i + 1,
+    "headline": n.title,
+    "datePublished": n.date,
+    "description": n.summary,
+    "url": n.url,
+    "image": n.image ? new URL(n.image, location.href).href : undefined,
+    "publisher": {
+      "@type": "Organization",
+      "name": "CustomsTech"
+    }
+  })).filter(n => n.image);
+
+  if (schemaArticles.length) {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schemaArticles);
+    document.head.appendChild(script);
+  }
 </script>
 
 </body>
