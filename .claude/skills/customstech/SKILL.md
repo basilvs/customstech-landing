@@ -1,6 +1,6 @@
 ---
 name: customstech
-description: Помогает работать с репозиторием customstech-landing (статический лендинг с живой лентой новостей ВЭД): структура, локальный запуск, правки index.html и news-data.js, синхронизация README, проверка ошибок (Lighthouse/консоль), подготовка к публикации на GitHub Pages. Используй при любой задаче внутри customstech-landing.
+description: "Помогает работать с репозиторием customstech-landing (статический лендинг с живой лентой новостей ВЭД): структура, локальный запуск, правки index.html и news-data.js, синхронизация README, проверка ошибок (Lighthouse/консоль), подготовка к публикации на GitHub Pages. Используй при любой задаче внутри customstech-landing."
 ---
 
 # CustomsTech landing
