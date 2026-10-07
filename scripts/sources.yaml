@@ -1,0 +1,243 @@
+# Источники новостей по таможенному законодательству РФ и ЕАЭС для ленты customstech.ru.
+# Форма — как в customsnews-law-monitor/config/sources.yaml (плоские ключи).
+# HTML-источники из чек-листа добавлены с мягкими селекторами: сбой одного
+# источника не влияет на остальные (source_health в state.json).
+
+sources:
+  # --- ядро: RSS ---
+  - name: "ФТС России"
+    type: rss
+    url: "https://customs.gov.ru/press/federal/rss"
+    keywords: &core_kw
+      - "таможен"
+      - "закон"
+      - "постановление"
+      - "приказ"
+      - "пошлин"
+      - "ЕАЭС"
+      - "ЕЭК"
+      - "декларирование"
+      - "ВЭД"
+      - "контроль"
+      - "санкци"
+
+  - name: "Правительство РФ"
+    type: rss
+    url: "http://government.ru/news/rss/"
+    keywords: *core_kw
+
+  - name: "ТКС"
+    type: rss
+    url: "https://www.tks.ru/rss.xml"
+    keywords: *core_kw
+
+  - name: "Альта"
+    type: rss
+    url: "https://www.alta.ru/rss/full/"
+    keywords:
+      - "таможен"
+      - "ЕАЭС"
+      - "пошлин"
+      - "декларирование"
+      - "ВЭД"
+      - "контроль"
+      - "закон"
+      - "постановление"
+      - "приказ"
+      - "импорт"
+      - "экспорт"
+      - "НДС"
+      - "сертиф"
+
+  - name: "ВЭДОФОН"
+    type: rss
+    url: "https://vedofon.ru/rss"
+    keywords: *core_kw
+
+  # --- официальный HTML: ЕЭК ---
+  - name: "ЕЭК ЕАЭС"
+    type: html
+    url: "https://eec.eaeunion.org/news/ru/"
+    list_selector: ".news-item, .news-list .item, article"
+    title_selector: "h2, h3, .title, a"
+    link_selector: "a"
+    date_selector: ".date, time"
+    keywords: *core_kw
+
+  # --- HTML-источники: мягкие селекторы, деградация терпима ---
+  - name: "CustomsOnline"
+    type: html
+    url: "https://customsonline.ru/news"
+    list_selector: "article, .news-item, .item-list li, table tr"
+    title_selector: "h2 a, h3 a, .title a, a"
+    link_selector: "a"
+    date_selector: ".date, time, .news-date"
+
+  - name: "CustomsOnline ВЭД-новости"
+    type: html
+    url: "https://customsonline.ru/ved_news"
+    list_selector: "article, .news-item, .item-list li, table tr"
+    title_selector: "h2 a, h3 a, .title a, a"
+    link_selector: "a"
+    date_selector: ".date, time, .news-date"
+
+  - name: "РосТаможИнформирование"
+    type: html
+    url: "https://ruscustomsinform.ru/news"
+    list_selector: "article, .news-item, .item-list li"
+    title_selector: "h2 a, h3 a, .title a, a"
+    link_selector: "a"
+    date_selector: ".date, time"
+
+  - name: "Гарант: важное"
+    type: html
+    url: "https://www.garant.ru/hotlaw/important/"
+    list_selector: "article, .law-item, .item"
+    title_selector: "h2 a, h3 a, .title a, a"
+    link_selector: "a"
+    date_selector: ".date, time"
+
+  - name: "Клерк.ру: таможенное право"
+    type: html
+    url: "https://www.klerk.ru/rubricator/tamozhennoe-pravo/"
+    list_selector: "article, .rubricator-list li, .item"
+    title_selector: "h2 a, h3 a, .title a, a"
+    link_selector: "a"
+    date_selector: ".date, time"
+
+  - name: "Коммерсантъ: таможня"
+    type: html
+    url: "https://www.kommersant.ru/theme/465"
+    list_selector: "article.uho, .rubric-lenta__item"
+    title_selector: "h2 a, h3 a, a.rubric-lenta__item__link, a"
+    link_selector: "a"
+    date_selector: ".date, time"
+
+# Общие ключевые слова: новость релевантна, если есть хотя бы одно
+# (заголовок или описание; регистр не важен).
+common_keywords:
+  - "таможен"
+  - "законодательство"
+  - "постановление"
+  - "приказ"
+  - "ЕАЭС"
+  - "ЕЭК"
+  - "пошлин"
+  - "декларирование"
+  - "ВЭД"
+  - "контроль"
+  - "санкци"
+  - "ограничительн"
+  - "импорт"
+  - "экспорт"
+  - "границ"
+  - "НДС"
+  - "сертиф"
+
+# Исключаемые слова: новость пропускается, если содержит хотя бы одно.
+exclude_keywords:
+  - "реклама"
+  - "вакансия"
+  - "мошенник"
+  - "конкурс"
+
+# Маркеры НПА: считаются только новости об актах.
+act_markers:
+  - "закон"
+  - "кодекс"
+  - "постановлени"
+  - "распоряжени"
+  - "приказ"
+  - "решени"
+  - "указ"
+  - "правил"
+  - "порядок"
+  - "инструкци"
+  - "разъяснени"
+  - "изменени"
+  - "соглашени"
+
+# Акт только для физических лиц (заголовок) → не берётся.
+individual_markers:
+  - "физических лиц"
+  - "физлиц"
+  - "личного пользования"
+  - "личного потребления"
+  - "для личных нужд"
+  - "беспошлинно"
+
+# Направления законодательства: максимальное число совпадений выбирает направление.
+directions:
+  - name: "таможенные операции и таможенный контроль"
+    keywords:
+      - "таможенные операции"
+      - "таможенный контроль"
+      - "таможенного контроля"
+      - "выпуск товаров"
+      - "выпуске товаров"
+      - "таможенный досмотр"
+      - "таможенный осмотр"
+      - "таможенный транзит"
+      - "временное хранение"
+      - "свх"
+      - "уэо"
+      - "пункты пропуска"
+      - "прибытие товаров"
+      - "убытие товаров"
+
+  - name: "декларирование"
+    keywords:
+      - "декларир"
+      - "деклараци"
+      - "выпуск до подачи"
+      - "заявление о выпуске"
+      - "структура декларации"
+
+  - name: "запреты и ограничения"
+    keywords:
+      - "запрет"
+      - "запрещ"
+      - "ограничен"
+      - "лицензирован"
+      - "лиценз"
+      - "квот"
+      - "санкц"
+      - "разрешительн"
+
+  - name: "тн вэд и етт"
+    keywords:
+      - "тн вэд"
+      - "классификаци"
+      - "номенклатур"
+      - "тариф"
+      - "пошлин"
+      - "ставк"
+      - "етт"
+      - "таможенно-тарифн"
+
+  - name: "безопасность товаров"
+    keywords:
+      - "сертиф"
+      - "соответстви"
+      - "техническ"
+      - "регламент"
+      - "санитарн"
+      - "эпидемиолог"
+      - "ветеринарн"
+      - "карантин"
+      - "фитосанитарн"
+      - "безопасност"
+      - "роспотребнадзор"
+      - "россельхознадзор"
+      - "гигиен"
+
+  - name: "маркировка"
+    keywords:
+      - "маркировк"
+      - "средств идентификаци"
+      - "честный знак"
+      - "гис мониторинга"
+      - "прослежива"
+      - "рнпт"
+      - "допп"
+      - "спот"
