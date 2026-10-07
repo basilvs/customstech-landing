@@ -128,11 +128,17 @@ def build(args) -> int:
     js = "window.NEWS_FEED = " + json.dumps(feed["items"], ensure_ascii=False, indent=2) + ";\n"
 
     # --- 5. запись + change detection ---
+    # generated_at меняется в каждом прогоне, поэтому сравниваем только items —
+    # иначе будет коммит даже без новостей.
     old_hash = sha256_of(args.out)
-    new_hash = hashlib.sha256(
-        json.dumps(feed, ensure_ascii=False, sort_keys=True).encode()
-    ).hexdigest()
-    changed = old_hash != new_hash
+    try:
+        old_items = json.loads(args.out.read_text(encoding="utf-8")).get("items", [])
+    except (OSError, ValueError):
+        old_items = None
+    items_bytes = json.dumps(feed["items"], ensure_ascii=False, sort_keys=True).encode()
+    old_bytes = (json.dumps(old_items, ensure_ascii=False, sort_keys=True).encode()
+                 if old_items is not None else b"")
+    changed = hashlib.sha256(items_bytes).hexdigest() != hashlib.sha256(old_bytes).hexdigest()
 
     if not args.dry_run:
         args.out.write_text(
